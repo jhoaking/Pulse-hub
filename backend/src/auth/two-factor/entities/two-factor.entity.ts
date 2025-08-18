@@ -1,0 +1,34 @@
+import { User } from 'src/auth/entities/auth.entity';
+import { Column, CreateDateColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+export class TwoFactor {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column('text', {
+    unique: true,
+  })
+  code: string;
+
+  @Column('text')
+  email: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Column('bool', {
+    default: false,
+  })
+  isUsed: boolean;
+
+  @Column()
+  expiresAt: Date;
+
+
+  @ManyToOne(
+    () => User,
+    (user) => user.twoFactor,
+    {onDelete : 'CASCADE'}
+  )
+  user:User
+}

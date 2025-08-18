@@ -1,4 +1,5 @@
-import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from 'typeorm'
+import {Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm'
+import { TwoFactor } from '../two-factor/entities/two-factor.entity';
 
 
 
@@ -36,6 +37,12 @@ export class User {
   })
   roles: string[];
 
+  @OneToMany(
+    () => TwoFactor,
+    (twoFactor) => twoFactor.user,
+    //cascade por si acaso
+  )
+  twoFactor:TwoFactor[]
 
   
 }
