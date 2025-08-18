@@ -1,6 +1,7 @@
 import { User } from 'src/auth/entities/auth.entity';
-import { Column, CreateDateColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity({name : 'twoFactor'})
 export class TwoFactor {
   @PrimaryGeneratedColumn('uuid')
   id: string;

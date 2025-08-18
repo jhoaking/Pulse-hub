@@ -1,13 +1,16 @@
-import {Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm'
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TwoFactor } from '../two-factor/entities/two-factor.entity';
+import { Task } from 'src/tasks/entities/task.entity';
 
-
-
-@Entity({name : 'Users'})
+@Entity({ name: 'Users' })
 export class User {
-
-    @PrimaryGeneratedColumn('uuid')
-      @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('text')
@@ -42,7 +45,8 @@ export class User {
     (twoFactor) => twoFactor.user,
     //cascade por si acaso
   )
-  twoFactor:TwoFactor[]
+  twoFactor: TwoFactor[];
 
-  
+  @OneToMany(() => Task, (task) => task.user, { eager: true })
+  task: Task[];
 }
