@@ -1,8 +1,12 @@
 import {
   IsArray,
+  IsBoolean,
+  isBoolean,
+  IsDate,
   IsEnum,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -17,10 +21,8 @@ export class CreateTaskDto {
   @MinLength(1)
   description: string;
 
-  @IsString()
-  @MinLength(1)
-  @MaxLength(200)
-  duration: string;
+  @IsDate()
+  createdAt: Date;
 
   @IsEnum(Status)
   @IsOptional()
@@ -34,4 +36,14 @@ export class CreateTaskDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isCompleted?: boolean;
+
+  @IsString()
+  @Matches(/^\d+[mhd]$/, {
+    message: 'La duración debe ser algo como 10m, 2h o 5d',
+  })
+  duration: string;
 }

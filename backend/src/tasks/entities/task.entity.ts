@@ -47,10 +47,14 @@ export class Task {
   })
   tags: string[];
 
-  @ManyToOne(
-    () => User,
-    (user) => user.task,
-    {onDelete : 'CASCADE'}
-  )
-  user : User
+  @Column('bool', {
+    default: false,
+  })
+  isCompleted: boolean;
+
+  @Column('timestamp')
+  dueDate: Date;
+
+  @ManyToOne(() => User, (user) => user.task, { onDelete: 'CASCADE' })
+  user: User;
 }
