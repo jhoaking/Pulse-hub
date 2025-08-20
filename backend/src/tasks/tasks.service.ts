@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,14 +17,13 @@ import { Status } from './types/task';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger('TasksService');
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-
-    private readonly dataSource: DataSource,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, user: User) {
     const { duration, ...rest } = createTaskDto;
 
     const now = new Date();
@@ -47,12 +52,15 @@ export class TasksService {
         ...rest,
         dueDate,
         duration,
+        user,
       });
 
       await this.taskRepository.save(task);
       return task;
     } catch (error) {
       console.log(error);
+
+      this.handleExceptions(error);
     }
   }
 
@@ -98,15 +106,12 @@ export class TasksService {
 
     if (!task) throw new NotFoundException(`task with ${id} not found `);
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    queryRunner.connect();
-    queryRunner.startTransaction();
-
     const now = new Date();
     try {
       if (isCompleted) {
         task.isCompleted = true;
-        task.status = Status.delayed;
+        task.status = Status.completed;
+        task.user = user;
       } else {
         if (now > task.dueDate && !task.isCompleted) {
           task.status = Status.delayed;
@@ -116,11 +121,28 @@ export class TasksService {
       return await this.taskRepository.save(task);
     } catch (error) {
       console.log(error);
+      this.handleExceptions(error);
     }
   }
 
   async remove(id: string) {
     const task = await this.findOne(id);
     await this.taskRepository.remove(task);
+  }
+
+  private handleExceptions(error: any) {
+    if (error.code === '23505') throw new BadRequestException(error.detail);
+
+    this.logger.error(error);
+    throw new InternalServerErrorException(
+      'unexpected error check server logs!',
+    );
+  }
+
+  async deleteAllProducts() {
+    const query = this.taskRepository.createQueryBuilder('tasks');
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {}
   }
 }

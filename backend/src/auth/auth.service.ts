@@ -46,7 +46,7 @@ export class AuthService {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        select: { password: true },
+        select: { password: true , id : true},
       });
       if (!user) throw new UnauthorizedException(`email : ${email} not valid`);
 
@@ -67,5 +67,12 @@ export class AuthService {
   getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
+  }
+
+  async checkStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
+    };
   }
 }
