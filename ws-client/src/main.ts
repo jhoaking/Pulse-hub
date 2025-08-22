@@ -6,7 +6,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <h1>Websoccket-Client</h1>
 
-    <span>Offline</span>
+    <span id="server-status">Offline</span>
+
+    <form id="message-form">
+      <input placeholder="message" id="message-input"/>
+
+    </form>
 
   </div>
 `
