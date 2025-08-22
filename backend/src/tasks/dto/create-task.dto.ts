@@ -22,7 +22,8 @@ export class CreateTaskDto {
   description: string;
 
   @IsDate()
-  createdAt: Date;
+  @IsOptional()
+  createdAt?: Date;
 
   @IsEnum(Status)
   @IsOptional()

@@ -55,6 +55,6 @@ export class Task {
   @Column('timestamp')
   dueDate: Date;
 
-  @ManyToOne(() => User, (user) => user.task, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.task, {eager : true})
   user: User;
 }

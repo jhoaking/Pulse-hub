@@ -24,5 +24,5 @@ export class CreateUserDto {
   @IsArray({each : true})
   @IsString()
   @IsOptional()
-  roles : string[]
+  roles ?: string[]
 }
