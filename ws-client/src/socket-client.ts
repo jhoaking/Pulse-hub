@@ -84,6 +84,8 @@ const addListeners = (socket: Socket) => {
     delayedCount.textContent = taskList
       .querySelectorAll("li.delayed")
       .length.toString();
+
+    updateCounters();
   };
   const updateCounters = () => {
     completedCount.textContent = taskList
@@ -115,10 +117,11 @@ const addListeners = (socket: Socket) => {
   });
 
   socket.on("task-deleted", ({ id, name }) => {
+    
     const li = Array.from(taskList.children).find((el) =>
-      el.textContent?.includes(name)
+      el.textContent?.includes(id , name)
     );
-    if (li) li.remove();
+    if (li) li.remove(); 
     updateCounters();
   });
 };

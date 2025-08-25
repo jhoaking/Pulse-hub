@@ -10,9 +10,9 @@ import { Socket, Server } from 'socket.io';
 import { NewMessageDto } from './dtos/new-message.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from '../auth/interface';
-import { CreateTaskDto } from 'src/tasks/dto/create-task.dto';
-import { TasksService } from 'src/tasks/tasks.service';
-import { User } from 'src/auth/entities/auth.entity';
+import { CreateTaskDto } from '../tasks/dto/create-task.dto';
+import { TasksService } from '../tasks/tasks.service';
+import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
 
 @WebSocketGateway({ cors: true })
 export class MessagesWsGateway
@@ -58,15 +58,24 @@ export class MessagesWsGateway
     );
   }
 
+  handleError(client: Socket, message: string, error?: any) {
+    client.emit('error', { message });
+
+    console.error(
+      `[WS ERROR] Client: ${client.id} - ${message}`,
+      error ? error : '',
+    );
+  }
+
   //chat
 
   @SubscribeMessage('message-from-client')
   handleMessageFromClient(client: Socket, payload: NewMessageDto) {
     if (!this.messagesWsService.hasRole(client.id, 'admin')) {
-      client.emit('error', {
-        message: 'No tienes permisos para mandar mensajes globales',
-      });
-      return;
+      return this.handleError(
+        client,
+        'no tienes permiso para mandar mensajes globales',
+      );
     }
 
     this.wss.emit('message-from-server', {
@@ -78,39 +87,54 @@ export class MessagesWsGateway
   @SubscribeMessage('create-task')
   handleCreateTask(client: Socket, payload: CreateTaskDto) {
     if (!this.messagesWsService.hasRole(client.id, 'admin')) {
-      client.emit('error', { message: 'Solo admin puede crear tareas' });
-      return;
+      return this.handleError(client, 'Solo admin puede crear tareas');
     }
 
     const user = this.messagesWsService.getUserByClient(client.id);
 
     const task = this.taskService.create(payload, user);
 
-    this.wss.to('employe').emit('task-created', task);
+    this.wss.to(['employe', 'user']).emit('task-created', task);
   }
 
   //marcar tarea como completada
   @SubscribeMessage('update-task')
-  async handleUpdateTask(client: Socket, taskId: string, payload: any) {
-    const user = this.messagesWsService.getUserByClient(client.id);
+  async handleUpdateTask(
+    client: Socket,
+    payload: { taskId: string; content: CreateTaskDto },
+  ) {
+    try {
+      const user = this.messagesWsService.getUserByClient(client.id);
+      const updateDto: UpdateTaskDto = {
+        isCompleted: payload.content.isCompleted ?? true,
+        ...payload.content,
+      };
 
-    const task = await this.taskService.update(
-      payload.taskId,
-      { isCompleted: true },
-      user,
-    );
+      const task = await this.taskService.update(
+        payload.taskId,
+        updateDto,
+        user,
+      );
 
-    this.wss.to('admin').emit('task-updated', task);
+      this.wss.emit('task-updated', task);
+    } catch (error) {
+      this.handleError(client, 'Error al actualizar la tarea');
+    }
   }
   //  Eliminar tarea (solo admin)
   @SubscribeMessage('deleted-task')
-  async handleDeletedTask(client: Socket, payload: { taskId: string }) {
+  async handleDeletedTask(
+    client: Socket,
+    payload: { taskId: string; name: string },
+  ) {
     if (!this.messagesWsService.hasRole(client.id, 'admin')) {
-      client.emit('error', { message: 'Solo admin puede eliminar tareas' });
-      return;
+      return this.handleError(client, 'Solo admin puede eliminar tareas');
     }
-    await this.taskService.remove(payload.taskId);
+    const task = await this.taskService.findOne(payload.taskId);
 
-    this.wss.to('employee').emit('task-deleted', { id: payload.taskId });
+    if (!task) this.handleError(client, 'task not found');
+    
+    await this.taskService.remove(payload.taskId);
+    this.wss.emit('task-deleted', { id: task.id, name: task.name });
   }
 }
