@@ -18,19 +18,21 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </form>
     <ul id="messages-ul"></ul>
 
-    // Reemplaza el bloque del formulario de tareas por este:
-<h3>Tareas</h3>
-<form id="task-form">
-  <input id="task-name" placeholder="Nombre de tarea" required />
-  <input id="task-desc" placeholder="Descripción" required />
-  <input id="task-duration" placeholder="Duración (10m, 2h, 5d)" required />
-  <select id="task-priority">
-    <option value="LOW">LOW</option>
-    <option value="MEDIUM">MEDIUM</option>
-    <option value="HIGH">HIGH</option>
-  </select>
-  <button type="submit">Crear tarea</button>
-</form>
+    <h3>Tareas</h3>
+    <form id="task-form">
+      <input id="task-name" placeholder="Nombre de tarea" required />
+      <input id="task-desc" placeholder="Descripción" required />
+      <input id="task-duration" placeholder="Duración (10m, 2h, 5d)" required />
+      <select id="task-priority">
+        <option value="low">low</option>
+        <option value="medium">medium</option>
+        <option value="high">high</option>
+      </select>
+      <button type="submit">Crear tarea</button>
+    </form>
+
+   
+    <ul id="tasks-ul"></ul>
 
     <h3>Dashboard</h3>
     <p>Total: <span id="total-tasks">0</span></p>
@@ -39,8 +41,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-const btnConnect = document.querySelector<HTMLButtonElement>("#btn-connect")!;
 const jwtToken = document.querySelector<HTMLInputElement>("#jwtToken")!;
+const btnConnect = document.querySelector<HTMLButtonElement>("#btn-connect")!;
 
 btnConnect.addEventListener("click", () => {
   if (jwtToken.value.trim().length <= 0) return alert("Ingrese un JWT válido");

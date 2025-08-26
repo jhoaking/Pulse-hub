@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -57,4 +58,5 @@ export class Task {
 
   @ManyToOne(() => User, (user) => user.task, {eager : true})
   user: User;
+ 
 }

@@ -17,7 +17,6 @@ import { NewMessageDto } from './dtos/new-message.dto';
 
 import { JwtPayload } from '../auth/interface';
 
-
 @WebSocketGateway({ cors: true })
 export class MessagesWsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -38,7 +37,7 @@ export class MessagesWsGateway
         payload.id,
       );
 
-      //unimos el socket por acda rol a un room
+      //unimos el socket por cada rol a un room
       user.roles.forEach((role) => client.join(role));
 
       this.wss.emit(
@@ -98,7 +97,8 @@ export class MessagesWsGateway
 
     const task = await this.taskService.create(payload, user);
 
-    this.wss.to(['employe', 'user']).emit('task-created', task);
+    this.messagesWsService.emitTaskByRole('employee');
+    this.messagesWsService.emitTaskByRole('user');
   }
 
   //marcar tarea como completada
@@ -120,7 +120,9 @@ export class MessagesWsGateway
         user,
       );
 
-      this.wss.emit('task-updated', task);
+      ['admin', 'employee', 'user'].forEach((role) =>
+        this.messagesWsService.emitToRole(role, 'task-updated', task),
+      );
     } catch (error) {
       this.handleError(client, 'Error al actualizar la tarea');
     }

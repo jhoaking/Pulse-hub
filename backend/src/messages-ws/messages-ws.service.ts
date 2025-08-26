@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { Socket } from 'socket.io';
 
 import { User } from '../auth/entities/auth.entity';
+import { TasksService } from 'src/tasks/tasks.service';
+import { Cron } from '@nestjs/schedule';
 
 interface ConnectedClients {
   [id: string]: {
@@ -20,6 +22,7 @@ export class MessagesWsService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly taskService: TasksService,
   ) {}
 
   async registerClient(client: Socket, userId: string) {
@@ -82,5 +85,46 @@ export class MessagesWsService {
         break;
       }
     }
+  }
+
+  getRoomsByRole(role: string): Socket[] {
+    return Object.values(this.connectedClients)
+      .filter((u) => u.user.roles.includes(role))
+      .map((u) => u.socket);
+  }
+
+  emitToRole(role: string, event: string, payload: any) {
+    const user = this.getRoomsByRole(role);
+    user.forEach((socket) => socket.emit(event, payload));
+  }
+
+  async emitTaskByRole(role:string){
+    const task = await this.taskService.findTaskByRole(role);
+    const socket = this.getRoomsByRole(role)
+    socket.forEach((socket) => socket.emit('task-list',task))
+  }
+
+  //revisar tareas que estan por vencer 
+  @Cron('*/1 * * * *')
+  async checkTask() {
+    const now = new Date();
+    const tasks = await this.taskService.findAll();
+
+    tasks.forEach((task) => {
+      if (task.isCompleted) return;
+
+      const diffMinutes = (task.dueDate.getTime() - now.getTime()) / 1000 / 60;
+
+      if (diffMinutes > 0 && diffMinutes <= 10) {
+        // Emitimos alerta a admins y empleados
+        ['admin', 'employee'].forEach((role) =>
+          this.emitToRole(role, 'task-due-soon', {
+            taskId: task.id,
+            name: task.name,
+            dueInMinutes: Math.floor(diffMinutes),
+          }),
+        );
+      }
+    });
   }
 }

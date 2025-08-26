@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 
 import { validate as isUUID } from 'uuid';
 
@@ -48,7 +48,7 @@ export class TasksService {
       case 'h':
         dueDate.setHours(dueDate.getHours() + value);
         break;
-      case 'd': 
+      case 'd':
         dueDate.setDate(dueDate.getDate() + value);
         break;
     }
@@ -58,10 +58,13 @@ export class TasksService {
         ...rest,
         dueDate,
         duration,
+        status: Status.pending,
+        isCompleted: false,
         user,
       });
 
       await this.taskRepository.save(task);
+      console.log('task', task);
       return task;
     } catch (error) {
       console.log(error);
@@ -70,8 +73,8 @@ export class TasksService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
+  async findAll(paginationDto?: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto!;
 
     const task = await this.taskRepository.find({
       take: limit,
@@ -150,5 +153,15 @@ export class TasksService {
     try {
       return await query.delete().where({}).execute();
     } catch (error) {}
+  }
+
+  async findTaskByRole(role: string) {
+    const task = await this.taskRepository.find({
+      relations: {
+        user: true,
+      },
+    });
+
+    return task.filter((t) => t.user.roles.includes(role));
   }
 }
