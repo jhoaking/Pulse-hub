@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
+import { Controller, Get, Post, Body} from '@nestjs/common';
+
 import { Auth } from './Decorator/auth-roles.decorator';
 import { GetUser } from './Decorator';
+import { AuthService } from './auth.service';
+
+import { CreateUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './entities/auth.entity';
+
 
 
 @Controller('auth')

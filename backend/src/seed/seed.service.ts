@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/auth/entities/auth.entity';
-import { TasksService } from 'src/tasks/tasks.service';
 import { Repository } from 'typeorm';
+
 import { initialData } from './Data/seed-data';
-import { Task } from 'src/tasks/entities/task.entity';
+
+
+import { User } from '../auth/entities/auth.entity';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class SeedService {

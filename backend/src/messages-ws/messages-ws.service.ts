@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Socket } from 'socket.io';
-import { User } from 'src/auth/entities/auth.entity';
 import { Repository } from 'typeorm';
+
+import { Socket } from 'socket.io';
+
+import { User } from '../auth/entities/auth.entity';
 
 interface ConnectedClients {
   [id: string]: {

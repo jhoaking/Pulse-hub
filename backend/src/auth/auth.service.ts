@@ -1,17 +1,19 @@
 import {
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import * as bcrypt from 'bcrypt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/auth.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './interface/auth-user.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import * as bcrypt from 'bcrypt';
+
 import { TwoFactorService } from './two-factor/two-factor.service';
+
+import { CreateUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { User } from './entities/auth.entity';
+import { JwtPayload } from './interface/auth-user.interface';
 
 @Injectable()
 export class AuthService {

@@ -5,14 +5,18 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { MessagesWsService } from './messages-ws.service';
 import { Socket, Server } from 'socket.io';
-import { NewMessageDto } from './dtos/new-message.dto';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from '../auth/interface';
+
 import { CreateTaskDto } from '../tasks/dto/create-task.dto';
 import { TasksService } from '../tasks/tasks.service';
 import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
+
+import { MessagesWsService } from './messages-ws.service';
+import { NewMessageDto } from './dtos/new-message.dto';
+
+import { JwtPayload } from '../auth/interface';
+
 
 @WebSocketGateway({ cors: true })
 export class MessagesWsGateway
@@ -85,14 +89,14 @@ export class MessagesWsGateway
   }
 
   @SubscribeMessage('create-task')
-  handleCreateTask(client: Socket, payload: CreateTaskDto) {
+  async handleCreateTask(client: Socket, payload: CreateTaskDto) {
     if (!this.messagesWsService.hasRole(client.id, 'admin')) {
       return this.handleError(client, 'Solo admin puede crear tareas');
     }
 
     const user = this.messagesWsService.getUserByClient(client.id);
 
-    const task = this.taskService.create(payload, user);
+    const task = await this.taskService.create(payload, user);
 
     this.wss.to(['employe', 'user']).emit('task-created', task);
   }
@@ -133,7 +137,7 @@ export class MessagesWsGateway
     const task = await this.taskService.findOne(payload.taskId);
 
     if (!task) this.handleError(client, 'task not found');
-    
+
     await this.taskService.remove(payload.taskId);
     this.wss.emit('task-deleted', { id: task.id, name: task.name });
   }

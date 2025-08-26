@@ -5,15 +5,20 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { validate as isUUID } from 'uuid';
+
+import { User } from '../auth/entities/auth.entity';
+
+import { PaginationDto } from '../common/dto/pagination.dto';
+
+import { Status } from './types/task';
+
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
-import { DataSource, Repository } from 'typeorm';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { validate as isUUID } from 'uuid';
-import { User } from 'src/auth/entities/auth.entity';
-import { Status } from './types/task';
 
 @Injectable()
 export class TasksService {

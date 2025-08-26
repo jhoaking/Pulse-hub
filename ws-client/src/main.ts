@@ -18,12 +18,19 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </form>
     <ul id="messages-ul"></ul>
 
-    <h3>Tareas</h3>
-    <form id="task-form">
-      <input id="task-name" placeholder="Nombre de tarea" />
-      <button type="submit">Crear tarea</button>
-    </form>
-    <ul id="tasks-ul"></ul>
+    // Reemplaza el bloque del formulario de tareas por este:
+<h3>Tareas</h3>
+<form id="task-form">
+  <input id="task-name" placeholder="Nombre de tarea" required />
+  <input id="task-desc" placeholder="Descripción" required />
+  <input id="task-duration" placeholder="Duración (10m, 2h, 5d)" required />
+  <select id="task-priority">
+    <option value="LOW">LOW</option>
+    <option value="MEDIUM">MEDIUM</option>
+    <option value="HIGH">HIGH</option>
+  </select>
+  <button type="submit">Crear tarea</button>
+</form>
 
     <h3>Dashboard</h3>
     <p>Total: <span id="total-tasks">0</span></p>

@@ -9,14 +9,17 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
+
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { GetUser } from 'src/auth/Decorator';
-import { User } from 'src/auth/entities/auth.entity';
-import { Auth } from 'src/auth/Decorator/auth-roles.decorator';
-import { ValidRoles } from 'src/auth/interface/valid-roles.interface';
+import { PaginationDto } from '../common/dto/pagination.dto';
+
+import { ValidRoles } from '../auth/interface/valid-roles.interface';
+import { GetUser } from '../auth/Decorator';
+import { Auth } from '../auth/Decorator/auth-roles.decorator';
+
+import { User } from '../auth/entities/auth.entity';
 
 @Controller('tasks')
 export class TasksController {
