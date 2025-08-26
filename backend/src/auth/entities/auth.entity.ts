@@ -47,6 +47,6 @@ export class User {
   )
   twoFactor: TwoFactor[];
 
-  @OneToMany(() => Task, (task) => task.user, { eager: true })
+  @OneToMany(() => Task, (task) => task.user)
   task: Task[];
 }

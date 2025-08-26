@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -48,7 +45,7 @@ export class AuthService {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        select: { password: true , id : true},
+        select: { email: true, password: true, id: true },
       });
       if (!user) throw new UnauthorizedException(`email : ${email} not valid`);
 
@@ -59,7 +56,7 @@ export class AuthService {
       await this.twoFactorService.sendCodeEmail(user);
 
       return {
-        message: 'e mando el codigo de verificacon a tu email',
+        message: 'se mando el codigo de verificacon a tu email',
         user,
       };
     } catch (error) {

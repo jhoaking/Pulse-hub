@@ -1,15 +1,14 @@
 import {
   IsArray,
   IsBoolean,
-  isBoolean,
   IsDate,
   IsEnum,
   IsOptional,
   IsString,
   Matches,
-  MaxLength,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Priority, Status } from '../types/task';
 
 export class CreateTaskDto {
@@ -23,6 +22,7 @@ export class CreateTaskDto {
 
   @IsDate()
   @IsOptional()
+  @Type(() => Date)
   createdAt?: Date;
 
   @IsEnum(Status)
@@ -43,8 +43,8 @@ export class CreateTaskDto {
   isCompleted?: boolean;
 
   @IsString()
-  @Matches(/^\d+[mhd]$/, {
-    message: 'La duración debe ser algo como 10m, 2h o 5d',
+  @Matches(/^\d+(\.\d+)?[mhd]$/, {
+    message: 'La duración debe ser algo como 10m, 2h o 1.5h',
   })
   duration: string;
 }

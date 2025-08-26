@@ -11,7 +11,7 @@ export class TwoFactor {
   })
   code: string;
 
-  @Column('text')
+  @Column('text',{unique : true})
   email: string;
 
   @CreateDateColumn()

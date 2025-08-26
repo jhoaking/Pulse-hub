@@ -33,6 +33,9 @@ export class TwoFactorService {
         isUsed: false,
         expiresAt: MoreThan(new Date()),
       },
+      relations: {
+        user: true,
+      },
     });
 
     if (userExist) {

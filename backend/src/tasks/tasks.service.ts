@@ -30,14 +30,15 @@ export class TasksService {
 
   async create(createTaskDto: CreateTaskDto, user: User) {
     const { duration, ...rest } = createTaskDto;
+    console.log('diratuin ', duration, typeof duration);
 
     const now = new Date();
     const dueDate = new Date(now);
 
-    const match = duration.match(/^(\d+)([mhd])$/);
+    const match = duration.match(/^\d+(\.\d+)?[mhd]$/);
     if (!match) throw new Error('duration invalid');
 
-    const value = parseInt(match[1], 10); // el valor en numero de al duracion
+    const value = parseFloat(match[1]); // el valor en numero de al duracion
     const unit = match[2]; // sacamos el valor de la unidad como 'h' 'm' 's'
 
     switch (unit) {
@@ -47,7 +48,7 @@ export class TasksService {
       case 'h':
         dueDate.setHours(dueDate.getHours() + value);
         break;
-      case 'd':
+      case 'd': 
         dueDate.setDate(dueDate.getDate() + value);
         break;
     }

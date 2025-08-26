@@ -7,6 +7,6 @@ import { TasksModule } from 'src/tasks/tasks.module';
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
-  imports : [TasksModule]
+  imports : [TasksModule,AuthModule]
 })
 export class SeedModule {}
