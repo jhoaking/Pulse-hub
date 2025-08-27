@@ -48,3 +48,12 @@ btnConnect.addEventListener("click", () => {
   if (jwtToken.value.trim().length <= 0) return alert("Ingrese un JWT válido");
   connectToServer(jwtToken.value.trim());
 });
+export function renderUI(role: string) {
+  if (role === 'admin') {
+    // Admin puede ver todo
+    document.querySelector<HTMLFormElement>("#task-form")!.style.display = "block";
+  } else {
+    // Usuario normal: no puede crear tareas
+    document.querySelector<HTMLFormElement>("#task-form")!.style.display = "none";
+  }
+}

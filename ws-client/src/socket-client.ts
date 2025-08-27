@@ -1,127 +1,125 @@
+// socket-client.ts
 import { io, Socket } from "socket.io-client";
+import { renderUI } from "./main";
 
-type ClientInfo = { socketId: string; fullName: string; roles: string[] };
 let socket: Socket;
 
 export const connectToServer = (token: string) => {
-  socket = io("http://localhost:3000", {
-    auth: { authentication: token },
-    transports: ["websocket"],
+  socket = io("http://localhost:3000/ws", {
+    extraHeaders: {
+      authentication: token,
+    },
   });
-  socket.removeAllListeners();
-  addListeners();
-};
 
-// Función para capturar elementos y agregar listeners
-const addListeners = () => {
-  const serverStatus = document.querySelector("#server-status")!;
-  const clientsUl = document.querySelector("#clients-ul")!;
+  // Estado de conexión
+  socket.on("connect", () => {
+    document.querySelector<HTMLParagraphElement>("#server-status")!.innerText =
+      "online";
+  });
+
+  socket.on("disconnect", () => {
+    document.querySelector<HTMLParagraphElement>("#server-status")!.innerText =
+      "offline";
+  });
+
+  // Lista de usuarios conectados
+  socket.on("clients-updated", (clients: string[]) => {
+    const clientsUl = document.querySelector<HTMLUListElement>("#clients-ul")!;
+    let clientsHtml = "";
+    clients.forEach((clientId) => {
+      clientsHtml += `<li>${clientId}</li>`;
+    });
+    clientsUl.innerHTML = clientsHtml;
+  });
+
+  // ==== CHAT ====
   const messageForm = document.querySelector<HTMLFormElement>("#message-form")!;
   const messageInput =
-    document.querySelector<HTMLInputElement>("#message-input")!; 
-  const messagesUl = document.querySelector("#messages-ul")!;
-  const taskForm = document.querySelector<HTMLFormElement>("#task-form")!;
-  const taskList = document.querySelector<HTMLUListElement>("#tasks-ul")!;
-  const totalTasks = document.querySelector("#total-tasks")!;
-  const completedTasks = document.querySelector("#completed-tasks")!;
-  const pendingTasks = document.querySelector("#pending-tasks")!;
+    document.querySelector<HTMLInputElement>("#message-input")!;
+  const messagesUl = document.querySelector<HTMLUListElement>("#messages-ul")!;
 
-  // Helpers que usan elementos
-  const updateClients = (clients: ClientInfo[]) => {
-    clientsUl.innerHTML = "";
-    clients.forEach((c) => {
-      const li = document.createElement("li");
-      li.textContent = `${c.fullName} (${c.roles.join(", ")})`;
-      clientsUl.appendChild(li);
-    });
-  };
-const createTaskElement = (task: {
-  id: string;
-  name: string;
-  status?: string; 
-}) => {
-  const li = document.createElement("li");
-  li.dataset.id = task.id;
-  const status = task.status || 'pending'; // fallback
-  li.textContent = `${task.name} - ${status}`;
-  li.classList.add(status.toLowerCase().replace(" ", "-"));
-  return li;
-};
-
-  const updateCounters = () => {
-    const tasks = taskList.querySelectorAll("li");
-    const total = tasks.length;
-    const completed = Array.from(tasks).filter((t) =>
-      t.classList.contains("completed")
-    ).length;
-    const pending = total - completed;
-    totalTasks.textContent = total.toString();
-    completedTasks.textContent = completed.toString();
-    pendingTasks.textContent = pending.toString();
-  };
-
-  // Socket Events
-  socket.on("connect", () => (serverStatus.textContent = "online"));
-
-  socket.on("disconnect", () => (serverStatus.textContent = "offline"));
-
-  socket.on("clients-updated", updateClients);
-
-  socket.on("message-from-server", (payload) => {
-    const li = document.createElement("li");
-    li.textContent = `${payload.fullName}: ${payload.message}`;
-    messagesUl.appendChild(li);
-  });
-
-  socket.on("task-created", (task) => {
-    const li = createTaskElement(task);
-    taskList.appendChild(li);
-    updateCounters();
-  });
-
-  socket.on("task-updated", (task) => {
-    const li = taskList.querySelector<HTMLLIElement>(`[data-id="${task.id}"]`);
-    if (li) {
-      li.textContent = `${task.name} - ${task.status}`;
-      li.className = "";
-      li.classList.add(task.status.toLowerCase().replace(" ", "-"));
-    }
-    updateCounters();
-  });
-
-  socket.on("task-deleted", (task) => {
-    const li = taskList.querySelector<HTMLLIElement>(`[data-id="${task.id}"]`);
-    if (li) li.remove();
-    updateCounters();
-  });
-
-  socket.on("error", (error) => alert(error.message || "Error desconocido"));
-
-  // Formularios
-  messageForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (!messageInput.value.trim()) return;
+  messageForm.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    if (messageInput.value.trim().length === 0) return;
     socket.emit("message-from-client", { message: messageInput.value });
     messageInput.value = "";
   });
 
-  taskForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const name = (document.querySelector("#task-name") as HTMLInputElement)
-      .value;
-    const description = (
-      document.querySelector("#task-desc") as HTMLInputElement
-    ).value;
-    const duration = (
-      document.querySelector("#task-duration") as HTMLInputElement
-    ).value;
-    const priority = (
-      document.querySelector("#task-priority") as HTMLSelectElement
-    ).value;
+  socket.on(
+    "message-from-server",
+    (payload: { fullName: string; message: string }) => {
+      const newMessage = `<li><strong>${payload.fullName}:</strong> ${payload.message}</li>`;
+      messagesUl.innerHTML = newMessage + messagesUl.innerHTML;
+    }
+  );
 
-    if (!/^\d+[mhd]$/.test(duration))
-      return alert("Duración inválida (ejemplo: 10m, 2h, 5d)");
+  // ==== TAREAS ====
+  const taskForm = document.querySelector<HTMLFormElement>("#task-form")!;
+  const tasksUl = document.querySelector<HTMLUListElement>("#tasks-ul")!;
 
-    socket.emit("create-task", { name, description, duration, priority });
+  const totalTasksSpan = document.querySelector<HTMLSpanElement>(
+    "#total-tasks"
+  )!;
+  const completedTasksSpan = document.querySelector<HTMLSpanElement>(
+    "#completed-tasks"
+  )!;
+  const pendingTasksSpan =
+    document.querySelector<HTMLSpanElement>("#pending-tasks")!;
+
+  taskForm.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const name = (document.querySelector<HTMLInputElement>(
+      "#task-name"
+    )!).value;
+    const description = (document.querySelector<HTMLInputElement>(
+      "#task-desc"
+    )!).value;
+    const duration = (document.querySelector<HTMLInputElement>(
+      "#task-duration"
+    )!).value;
+    const priority = (document.querySelector<HTMLSelectElement>(
+      "#task-priority"
+    )!).value;
+
+    socket.emit("create-task", {
+      name,
+      description,
+      duration,
+      priority,
+    });
+
+    taskForm.reset();
   });
+
+  // Escuchar tareas actualizadas
+  socket.on("task-updated", (tasks: any[]) => {
+    renderTasks(tasks);
+  });
+
+  // Escuchar tareas eliminadas
+  socket.on("task-deleted", (tasks: any[]) => {
+    renderTasks(tasks);
+  });
+
+  function renderTasks(tasks: any[]) {
+    let html = "";
+    let completed = 0;
+    tasks.forEach((t) => {
+      if (t.isCompleted) completed++;
+      html += `<li>
+          <strong>${t.name}</strong> - ${t.description} (${t.priority})
+          [${t.isCompleted ? "✅" : "⏳"}]
+        </li>`;
+    });
+    tasksUl.innerHTML = html;
+
+    totalTasksSpan.innerText = tasks.length.toString();
+    completedTasksSpan.innerText = completed.toString();
+    pendingTasksSpan.innerText = (tasks.length - completed).toString();
+  }
+
+  socket.on("connect-succes", (payload) => {
+    const { role} = payload
+    renderUI(role)
+  })
 };

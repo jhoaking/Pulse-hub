@@ -95,7 +95,7 @@ export class MessagesWsGateway
 
     const user = this.messagesWsService.getUserByClient(client.id);
 
-    const task = await this.taskService.create(payload, user);
+     await this.taskService.create(payload, user);
 
     this.messagesWsService.emitTaskByRole('employee');
     this.messagesWsService.emitTaskByRole('user');
