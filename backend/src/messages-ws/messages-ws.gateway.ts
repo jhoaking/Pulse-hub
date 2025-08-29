@@ -44,6 +44,11 @@ export class MessagesWsGateway
         'clients-updated',
         this.messagesWsService.getConnectedClients(),
       );
+
+      client.emit('connect-success', { role: user.roles });
+      for (const role of user.roles) {
+        await this.messagesWsService.emitTaskByRole(role);
+      }
     } catch (error) {
       client.disconnect();
       return;
@@ -95,8 +100,9 @@ export class MessagesWsGateway
 
     const user = this.messagesWsService.getUserByClient(client.id);
 
-     await this.taskService.create(payload, user);
+    await this.taskService.create(payload, user);
 
+    this.messagesWsService.emitTaskByRole('admin');
     this.messagesWsService.emitTaskByRole('employee');
     this.messagesWsService.emitTaskByRole('user');
   }
@@ -110,7 +116,7 @@ export class MessagesWsGateway
     try {
       const user = this.messagesWsService.getUserByClient(client.id);
       const updateDto: UpdateTaskDto = {
-        isCompleted: payload.content.isCompleted ?? true,
+        isCompleted: payload.content.isCompleted ?? false,
         ...payload.content,
       };
 
@@ -141,6 +147,8 @@ export class MessagesWsGateway
     if (!task) this.handleError(client, 'task not found');
 
     await this.taskService.remove(payload.taskId);
-    this.wss.emit('task-deleted', { id: task.id, name: task.name });
+    ['admin','employee','user'].forEach((role) =>
+    this.messagesWsService.emitToRole(role, 'task-deleted', [task])
+  );
   }
 }

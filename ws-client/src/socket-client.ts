@@ -1,12 +1,13 @@
-// socket-client.ts
 import { io, Socket } from "socket.io-client";
 import { renderUI } from "./main";
+import type { ChatMessage, ConnectedClient, Task } from "./types/ws-types";
 
 let socket: Socket;
+let currentRoles: string[] = [];
 
 export const connectToServer = (token: string) => {
-  socket = io("http://localhost:3000/ws", {
-    extraHeaders: {
+  socket = io("http://localhost:3000/", {
+    auth: {
       authentication: token,
     },
   });
@@ -23,11 +24,11 @@ export const connectToServer = (token: string) => {
   });
 
   // Lista de usuarios conectados
-  socket.on("clients-updated", (clients: string[]) => {
+  socket.on("clients-updated", (clients: ConnectedClient[]) => {
     const clientsUl = document.querySelector<HTMLUListElement>("#clients-ul")!;
     let clientsHtml = "";
-    clients.forEach((clientId) => {
-      clientsHtml += `<li>${clientId}</li>`;
+    clients.forEach((client) => {
+      clientsHtml += `<li>${client.fullName || client.socketId}</li>`;
     });
     clientsUl.innerHTML = clientsHtml;
   });
@@ -45,41 +46,31 @@ export const connectToServer = (token: string) => {
     messageInput.value = "";
   });
 
-  socket.on(
-    "message-from-server",
-    (payload: { fullName: string; message: string }) => {
-      const newMessage = `<li><strong>${payload.fullName}:</strong> ${payload.message}</li>`;
-      messagesUl.innerHTML = newMessage + messagesUl.innerHTML;
-    }
-  );
+  socket.on("message-from-server", (payload: ChatMessage) => {
+    const newMessage = `<li><strong>${payload.fullName}:</strong> ${payload.message}</li>`;
+    messagesUl.innerHTML = newMessage + messagesUl.innerHTML;
+  });
 
   // ==== TAREAS ====
   const taskForm = document.querySelector<HTMLFormElement>("#task-form")!;
   const tasksUl = document.querySelector<HTMLUListElement>("#tasks-ul")!;
 
-  const totalTasksSpan = document.querySelector<HTMLSpanElement>(
-    "#total-tasks"
-  )!;
-  const completedTasksSpan = document.querySelector<HTMLSpanElement>(
-    "#completed-tasks"
-  )!;
+  const totalTasksSpan =
+    document.querySelector<HTMLSpanElement>("#total-tasks")!;
+  const completedTasksSpan =
+    document.querySelector<HTMLSpanElement>("#completed-tasks")!;
   const pendingTasksSpan =
     document.querySelector<HTMLSpanElement>("#pending-tasks")!;
 
   taskForm.addEventListener("submit", (ev) => {
     ev.preventDefault();
-    const name = (document.querySelector<HTMLInputElement>(
-      "#task-name"
-    )!).value;
-    const description = (document.querySelector<HTMLInputElement>(
-      "#task-desc"
-    )!).value;
-    const duration = (document.querySelector<HTMLInputElement>(
-      "#task-duration"
-    )!).value;
-    const priority = (document.querySelector<HTMLSelectElement>(
-      "#task-priority"
-    )!).value;
+    const name = document.querySelector<HTMLInputElement>("#task-name")!.value;
+    const description =
+      document.querySelector<HTMLInputElement>("#task-desc")!.value;
+    const duration =
+      document.querySelector<HTMLInputElement>("#task-duration")!.value;
+    const priority =
+      document.querySelector<HTMLSelectElement>("#task-priority")!.value;
 
     socket.emit("create-task", {
       name,
@@ -92,34 +83,84 @@ export const connectToServer = (token: string) => {
   });
 
   // Escuchar tareas actualizadas
-  socket.on("task-updated", (tasks: any[]) => {
-    renderTasks(tasks);
+  socket.on("task-updated", (task: Task) => {
+    const li = document.querySelector<HTMLLIElement>(`li[data-id="${task.id}"]`);
+    if (li) {
+      li.outerHTML = taskItemHTML(task); // remplaza el <li> entero
+    }
+    refreshDashboard();
   });
 
   // Escuchar tareas eliminadas
-  socket.on("task-deleted", (tasks: any[]) => {
+  socket.on("task-deleted", (tasks: Task[]) => {
+    tasks.forEach((t) => {
+      const li = document.querySelector<HTMLLIElement>(`li[data-id="${t.id}"]`);
+      if (li) li.remove();
+    });
+
+    refreshDashboard();
+  });
+
+  socket.on("task-list", (tasks: Task[]) => {
     renderTasks(tasks);
   });
 
-  function renderTasks(tasks: any[]) {
+  function taskItemHTML(t: Task) {
+    let buttons = "";
+    if (!t.isCompleted) {
+      // todos pueden marcar completada
+      buttons += `<button class="mark-done" data-id="${t.id}">✔</button>`;
+    }
+    if (currentRoles.includes("admin")) {
+      // solo admin puede eliminar
+      buttons += `<button class="delete-task" data-id="${t.id}">🗑</button>`;
+    }
+
+    return `<li data-id="${t.id}">
+      <strong>${t.name}</strong> - ${t.description} (${t.priority})
+      [${t.isCompleted ? "✅" : "⏳"}]
+      ${buttons}
+    </li>`;
+  }
+
+  function renderTasks(tasks: Task[]) {
     let html = "";
     let completed = 0;
     tasks.forEach((t) => {
       if (t.isCompleted) completed++;
-      html += `<li>
-          <strong>${t.name}</strong> - ${t.description} (${t.priority})
-          [${t.isCompleted ? "✅" : "⏳"}]
-        </li>`;
+      html += taskItemHTML(t);
     });
     tasksUl.innerHTML = html;
-
-    totalTasksSpan.innerText = tasks.length.toString();
-    completedTasksSpan.innerText = completed.toString();
-    pendingTasksSpan.innerText = (tasks.length - completed).toString();
+    refreshDashboard();
   }
 
-  socket.on("connect-succes", (payload) => {
-    const { role} = payload
-    renderUI(role)
-  })
+  function refreshDashboard() {
+    const taskItems = tasksUl.querySelectorAll("li");
+    const total = taskItems.length;
+    let completed = 0;
+    taskItems.forEach((li) => {
+      if (li.textContent?.includes("✅")) completed++;
+    });
+    totalTasksSpan.innerText = total.toString();
+    completedTasksSpan.innerText = completed.toString();
+    pendingTasksSpan.innerText = (total - completed).toString();
+  }
+
+  // Escuchar clicks en tareas (marcar completada / eliminar)
+  tasksUl.addEventListener("click", (ev) => {
+    const target = ev.target as HTMLElement;
+    if (target.classList.contains("mark-done")) {
+      const id = target.dataset.id!;
+      socket.emit("update-task", { taskId: id, content: { isCompleted: true } });
+    }
+    if (target.classList.contains("delete-task")) {
+      const id = target.dataset.id!;
+      socket.emit("deleted-task", { taskId: id });
+    }
+  });
+
+  socket.on("connect-success", (payload: { role: string[] }) => {
+    currentRoles = payload.role;
+    renderUI(payload.role);
+  });
 };

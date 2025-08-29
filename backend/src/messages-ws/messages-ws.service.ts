@@ -20,10 +20,10 @@ export class MessagesWsService {
   private connectedClients: ConnectedClients = {};
 
   constructor(
-    @InjectRepository(User)
+    @InjectRepository(User) 
     private readonly userRepository: Repository<User>,
     private readonly taskService: TasksService,
-  ) {}
+  ) {} 
 
   async registerClient(client: Socket, userId: string) {
     const user = await this.userRepository.findOneBy({ id: userId });

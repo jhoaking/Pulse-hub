@@ -74,7 +74,7 @@ export class TasksService {
   }
 
   async findAll(paginationDto?: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto!;
+    const { limit = 10, offset = 0 } = paginationDto || {};
 
     const task = await this.taskRepository.find({
       take: limit,

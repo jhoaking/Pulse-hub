@@ -53,11 +53,12 @@ export class AuthService {
         throw new UnauthorizedException(`password : ${password} not valid`);
       }
 
-      await this.twoFactorService.sendCodeEmail(user);
+      //await this.twoFactorService.sendCodeEmail(user);
 
       return {
         message: 'se mando el codigo de verificacon a tu email',
         user,
+        token : this.getJwtToken({id : user.id})
       };
     } catch (error) {
       console.log(error);
