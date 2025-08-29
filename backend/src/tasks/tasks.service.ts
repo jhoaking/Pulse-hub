@@ -162,7 +162,7 @@ export class TasksService {
       },
     });
 
-    return task.filter((t) => t.user.roles.includes(role));
+    return task
   }
 
   async getDashboard() {
