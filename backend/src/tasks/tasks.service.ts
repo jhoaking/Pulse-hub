@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { validate as isUUID } from 'uuid';
 
@@ -163,5 +163,24 @@ export class TasksService {
     });
 
     return task.filter((t) => t.user.roles.includes(role));
+  }
+
+  async getDashboard() {
+    const task = await this.taskRepository.find();
+    const total = task.length;
+
+    const completed = task.filter((t) => t.isCompleted).length;
+    const pending = total - completed;
+    return { total, completed, pending };
+  }
+
+    async markCompleted(id: string) {
+    const task = await this.taskRepository.findOneBy({ id });
+    if (!task) throw new NotFoundException('Task not found');
+
+    task.isCompleted = true;
+    await this.taskRepository.save(task);
+
+    return task;
   }
 }

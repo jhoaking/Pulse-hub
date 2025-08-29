@@ -84,11 +84,12 @@ export const connectToServer = (token: string) => {
 
   // Escuchar tareas actualizadas
   socket.on("task-updated", (task: Task) => {
-    const li = document.querySelector<HTMLLIElement>(`li[data-id="${task.id}"]`);
+    const li = document.querySelector<HTMLLIElement>(
+      `li[data-id="${task.id}"]`
+    );
     if (li) {
       li.outerHTML = taskItemHTML(task); // remplaza el <li> entero
     }
-    refreshDashboard();
   });
 
   // Escuchar tareas eliminadas
@@ -97,8 +98,6 @@ export const connectToServer = (token: string) => {
       const li = document.querySelector<HTMLLIElement>(`li[data-id="${t.id}"]`);
       if (li) li.remove();
     });
-
-    refreshDashboard();
   });
 
   socket.on("task-list", (tasks: Task[]) => {
@@ -131,27 +130,26 @@ export const connectToServer = (token: string) => {
       html += taskItemHTML(t);
     });
     tasksUl.innerHTML = html;
-    refreshDashboard();
   }
 
-  function refreshDashboard() {
-    const taskItems = tasksUl.querySelectorAll("li");
-    const total = taskItems.length;
-    let completed = 0;
-    taskItems.forEach((li) => {
-      if (li.textContent?.includes("✅")) completed++;
-    });
-    totalTasksSpan.innerText = total.toString();
-    completedTasksSpan.innerText = completed.toString();
-    pendingTasksSpan.innerText = (total - completed).toString();
-  }
+  socket.on(
+    "dashboard-update",
+    (data: { total: number; completed: number; pending: number }) => {
+      totalTasksSpan.innerText = data.total.toString();
+      completedTasksSpan.innerText = data.completed.toString();
+      pendingTasksSpan.innerText = data.pending.toString();
+    }
+  );
 
   // Escuchar clicks en tareas (marcar completada / eliminar)
   tasksUl.addEventListener("click", (ev) => {
     const target = ev.target as HTMLElement;
     if (target.classList.contains("mark-done")) {
       const id = target.dataset.id!;
-      socket.emit("update-task", { taskId: id, content: { isCompleted: true } });
+      socket.emit("update-task", {
+        taskId: id,
+        content: { isCompleted: true },
+      });
     }
     if (target.classList.contains("delete-task")) {
       const id = target.dataset.id!;

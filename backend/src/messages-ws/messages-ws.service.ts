@@ -104,6 +104,7 @@ export class MessagesWsService {
     socket.forEach((socket) => socket.emit('task-list',task))
   }
 
+  
   //revisar tareas que estan por vencer 
   @Cron('*/1 * * * *')
   async checkTask() {

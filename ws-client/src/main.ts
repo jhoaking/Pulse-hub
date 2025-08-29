@@ -2,8 +2,13 @@ import "./style.css";
 import { connectToServer } from "./socket-client";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
- <body>
-  <h2>Estado: <span id="server-status">offline</span></h2>
+  <div>
+    <h2>Socket Client</h2>
+    <input id="jwtToken" placeholder="JWT token" />
+    <button id="btn-connect">Conectar</button>
+    <p id="server-status">offline</p>
+
+   <h2>Estado: <span id="server-status">offline</span></h2>
 
   <h3>Usuarios conectados</h3>
   <ul id="clients-ul"></ul>
@@ -36,8 +41,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <p>Total: <span id="total-tasks">0</span></p>
   <p>Completadas: <span id="completed-tasks">0</span></p>
   <p>Pendientes: <span id="pending-tasks">0</span></p>
-</body>
-
+  </div>
 `;
 
 const jwtToken = document.querySelector<HTMLInputElement>("#jwtToken")!;

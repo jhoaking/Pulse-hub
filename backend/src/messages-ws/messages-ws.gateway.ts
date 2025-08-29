@@ -75,6 +75,11 @@ export class MessagesWsGateway
     );
   }
 
+ async emitDashboard() {
+    const dashboard = await this.taskService.getDashboard();
+    this.wss.emit('dashboard-update', dashboard);
+  }
+
   //chat
 
   @SubscribeMessage('message-from-client')
@@ -101,10 +106,13 @@ export class MessagesWsGateway
     const user = this.messagesWsService.getUserByClient(client.id);
 
     await this.taskService.create(payload, user);
+    
 
     this.messagesWsService.emitTaskByRole('admin');
     this.messagesWsService.emitTaskByRole('employee');
     this.messagesWsService.emitTaskByRole('user');
+
+    await this.emitDashboard();
   }
 
   //marcar tarea como completada
@@ -129,6 +137,7 @@ export class MessagesWsGateway
       ['admin', 'employee', 'user'].forEach((role) =>
         this.messagesWsService.emitToRole(role, 'task-updated', task),
       );
+      await this.emitDashboard();
     } catch (error) {
       this.handleError(client, 'Error al actualizar la tarea');
     }
@@ -149,6 +158,8 @@ export class MessagesWsGateway
     await this.taskService.remove(payload.taskId);
     ['admin','employee','user'].forEach((role) =>
     this.messagesWsService.emitToRole(role, 'task-deleted', [task])
+    
   );
+  await this.emitDashboard();
   }
 }

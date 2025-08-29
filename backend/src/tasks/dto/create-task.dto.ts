@@ -47,4 +47,5 @@ export class CreateTaskDto {
     message: 'La duración debe ser algo como 10m, 2h o 1.5h',
   })
   duration: string;
+
 }
