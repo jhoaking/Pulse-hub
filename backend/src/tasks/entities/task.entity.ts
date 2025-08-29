@@ -1,19 +1,35 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+
 import { Priority, Status } from '../types/task';
-import { User } from 'src/auth/entities/auth.entity';
+
+import { User } from '../../auth/entities/auth.entity';
+
+
+
 
 @Entity({ name: 'tasks' })
 export class Task {
+
+  @ApiProperty({
+    example : '1efcdae9-4507-496e-97c0-48685574defc',
+    description : 'task ID',
+    uniqueItems : true
+  })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+
+  @ApiProperty({
+    example : 'Redactar informe mensual',
+    description : 'name for to task'
+  })
   @Column('text')
   name: string;
 

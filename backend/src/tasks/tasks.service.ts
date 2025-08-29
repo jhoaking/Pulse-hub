@@ -162,7 +162,7 @@ export class TasksService {
       },
     });
 
-    return task
+    return task;
   }
 
   async getDashboard() {
@@ -174,7 +174,7 @@ export class TasksService {
     return { total, completed, pending };
   }
 
-    async markCompleted(id: string) {
+  async markCompleted(id: string) {
     const task = await this.taskRepository.findOneBy({ id });
     if (!task) throw new NotFoundException('Task not found');
 
@@ -182,5 +182,11 @@ export class TasksService {
     await this.taskRepository.save(task);
 
     return task;
+  }
+
+  async countPendingTasks() {
+    return this.taskRepository.count({
+      where: { status: Status.pending },
+    });
   }
 }

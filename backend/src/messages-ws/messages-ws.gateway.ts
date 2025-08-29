@@ -57,6 +57,7 @@ export class MessagesWsGateway
       'clients-updated',
       this.messagesWsService.getConnectedClients(),
     );
+    this.emitLog(`🔵 Cliente conectado: ${client.id}`);
   }
   handleDisconnect(client: Socket) {
     this.messagesWsService.removeClient(client.id);
@@ -64,6 +65,7 @@ export class MessagesWsGateway
       'clients-updated',
       this.messagesWsService.getConnectedClients(),
     );
+    this.emitLog(`🔴 Cliente desconectado: ${client.id}`);
   }
 
   handleError(client: Socket, message: string, error?: any) {
@@ -113,6 +115,8 @@ export class MessagesWsGateway
     this.messagesWsService.emitTaskByRole('user');
 
     await this.emitDashboard();
+    this.emitLog(`✅ Nueva tarea creada: ${payload.name}`);
+    await this.checkCriticalAlerts();
   }
 
   //marcar tarea como completada
@@ -138,6 +142,7 @@ export class MessagesWsGateway
         this.messagesWsService.emitToRole(role, 'task-updated', task),
       );
       await this.emitDashboard();
+      await this.checkCriticalAlerts();
     } catch (error) {
       this.handleError(client, 'Error al actualizar la tarea');
     }
@@ -161,5 +166,26 @@ export class MessagesWsGateway
     
   );
   await this.emitDashboard();
+  await this.checkCriticalAlerts();
   }
+
+
+  private emitLog(message : string){
+    this.wss.emit('log-event',{
+      timestamp : new Date().toISOString(),
+      message
+    })
+  }
+
+  private async checkCriticalAlerts() {
+  const totalTasks = await this.taskService.countPendingTasks(); 
+
+
+  if (totalTasks > 5) {
+    this.wss.emit('critical-alert', {
+      level: 'danger',
+      message: `⚠️ Hay ${totalTasks} tareas pendientes, requiere atención.`,
+    });
+  }
+}
 }

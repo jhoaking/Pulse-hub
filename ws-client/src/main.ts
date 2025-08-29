@@ -36,6 +36,11 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
   <ul id="tasks-ul"></ul>
 
+  <h3>Logs</h3>
+<ul id="logs-ul"></ul>
+
+<div id="alert-box" style="display:none; background:red; color:white; padding:10px; margin-top:10px;"></div>
+
   <!-- DASHBOARD -->
   <h3>Dashboard</h3>
   <p>Total: <span id="total-tasks">0</span></p>
@@ -52,11 +57,13 @@ btnConnect.addEventListener("click", () => {
   connectToServer(jwtToken.value.trim());
 });
 export function renderUI(role: string[]) {
-  if (role.includes('admin')) {
+  if (role.includes("admin")) {
     // Admin puede ver todo
-    document.querySelector<HTMLFormElement>("#task-form")!.style.display = "block";
+    document.querySelector<HTMLFormElement>("#task-form")!.style.display =
+      "block";
   } else {
     // Usuario normal: no puede crear tareas
-    document.querySelector<HTMLFormElement>("#task-form")!.style.display = "none";
+    document.querySelector<HTMLFormElement>("#task-form")!.style.display =
+      "none";
   }
 }

@@ -72,6 +72,22 @@ export const connectToServer = (token: string) => {
     const priority =
       document.querySelector<HTMLSelectElement>("#task-priority")!.value;
 
+    const logsUl = document.querySelector<HTMLUListElement>("#logs-ul")!;
+    const alertBox = document.querySelector<HTMLDivElement>("#alert-box")!;
+
+    socket.on("log-event", (log) => {
+      const li = document.createElement("li");
+      li.textContent = `[${log.timestamp}] ${log.message}`;
+      logsUl.prepend(li);
+    });
+
+    socket.on("critical-alert", (alert) => {
+      alertBox.innerText = alert.message;
+      alertBox.style.display = "block";
+
+      setTimeout(() => (alertBox.style.display = "none"), 5000);
+    });
+
     socket.emit("create-task", {
       name,
       description,
