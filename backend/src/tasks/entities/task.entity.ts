@@ -33,6 +33,10 @@ export class Task {
   @Column('text')
   name: string;
 
+  @ApiProperty({
+    example : 'redactar el informe de una migracion',
+    description : 'description of to task'
+  })
   @Column('text', {
     default: '',
   })
