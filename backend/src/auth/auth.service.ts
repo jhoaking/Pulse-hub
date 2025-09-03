@@ -9,6 +9,7 @@ import { TwoFactorService } from './two-factor/two-factor.service';
 
 import { CreateUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+
 import { User } from './entities/auth.entity';
 import { JwtPayload } from './interface/auth-user.interface';
 
@@ -53,12 +54,11 @@ export class AuthService {
         throw new UnauthorizedException(`password : ${password} not valid`);
       }
 
-      //await this.twoFactorService.sendCodeEmail(user);
+      await this.twoFactorService.sendCodeEmail(user);
 
       return {
         message: 'se mando el codigo de verificacon a tu email',
         user,
-        token : this.getJwtToken({id : user.id})
       };
     } catch (error) {
       console.log(error);
