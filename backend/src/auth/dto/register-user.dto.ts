@@ -1,15 +1,36 @@
-
-import {IsArray, IsEmail, IsOptional, IsString, Matches, MaxLength, MinLength} from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
+  @ApiProperty({
+    description: 'name user',
+    example: 'Pepito Gomez',
+  })
   @IsString()
   @MinLength(1)
   fullName: string;
 
+  @ApiProperty({
+    description: 'email of user',
+    example: 'papeto123@gmail.com',
+    uniqueItems: true,
+  })
   @IsString()
   @IsEmail()
   email: string;
 
+  @ApiProperty({
+    description: 'password of user',
+    example: 'Abc123',
+  })
   @IsString()
   @MinLength(6)
   @MaxLength(50)
@@ -19,10 +40,12 @@ export class CreateUserDto {
   })
   password: string;
 
-
-
+  @ApiProperty({
+    description: 'role of user',
+    example: 'admin',
+  })
   @IsArray()
-  @IsString({each : true})
+  @IsString({ each: true })
   @IsOptional()
-  roles ?: string[]
+  roles?: string[];
 }
