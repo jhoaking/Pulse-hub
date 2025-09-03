@@ -11,6 +11,7 @@ import { ValidRoles } from '../auth/interface';
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
+  @ApiResponse({ status: 200, description: 'SEED EXECUTED' })
   @Get()
   @ApiResponse({ status: 200, description: 'seed  was  correctly executed ' })
   @Auth(ValidRoles.admin)
