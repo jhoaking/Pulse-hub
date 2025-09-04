@@ -13,9 +13,9 @@ export class SeedController {
 
   @ApiResponse({ status: 200, description: 'SEED EXECUTED' })
   @Get()
-  @ApiResponse({ status: 200, description: 'seed  was  correctly executed ' })
   @Auth(ValidRoles.admin)
   executedSeed() {
     return this.seedService.runSeed();
   }
-}
+} 
+               

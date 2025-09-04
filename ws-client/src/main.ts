@@ -4,7 +4,7 @@ import { connectToServer } from "./socket-client";
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <h2>Socket Client</h2>
-    <input id="jwtToken" placeholder="JWT token" />
+    <input id="jwtToken" placeholder="JWT token"/>
     <button id="btn-connect">Conectar</button>
     <p id="server-status">offline</p>
 

@@ -36,7 +36,7 @@ export const initialData: SeedData = {
       email: 'test2@goolge.com',
       fullName: 'test two',
       password: bcrypt.hashSync('Abc123', 10),
-      roles: ['user', 'employe'],
+      roles: ['operator', 'member'],
     },
   ],
   task: [
@@ -101,7 +101,7 @@ export const initialData: SeedData = {
       priority: Priority.high,
       tags: ['db', 'infraestructura'],
       createdAt: new Date(),
-      isCompleted: true,
+      isCompleted: true, 
     },
     {
       name: 'Diseño de UI',
