@@ -4,7 +4,7 @@
 
 
 **Pulse Hub** es una plataforma en tiempo real para equipos y empresas que permite:  
-- 📊 Monitorear datos en vivo (tareas, métricas, alertas).  
+- 📊 Monitorear datos en vivo (tareas, alertas).  
 - 💬 Colaborar mediante chat y tareas compartidas.  
 - 🔐 Gestionar roles de usuario (admin, operador, miembro).  
 - ⚡ Recibir notificaciones y actualizaciones instantáneas vía WebSockets.  
